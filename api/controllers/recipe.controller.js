@@ -20,8 +20,22 @@ async function create(req, res) {
     })
 }
 
+/**
+ * @param {{ query: { has: (arg0: string) => any; search: any; }; }} req
+ * @param {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: any[]): void; new (): any; }; }; }} res
+ */
 async function getAll(req, res) {
-    db.query('SELECT * FROM receita ORDER BY id ASC', (error, results) => {
+
+    let query = 'SELECT * FROM recipe ';
+
+    if (req.query['search']) {
+        const search = req.query.search;
+        query += `WHERE title LIKE '%${search}%' `;
+    }
+
+    query += 'ORDER BY id ASC';
+
+    db.query(query, (error, results) => {
         if (error) {
             throw error
         }
@@ -32,7 +46,7 @@ async function getAll(req, res) {
 
 async function getById(req, res) {
     const id = req.params.id
-    db.query('SELECT * FROM receita WHERE id = $1', [id], (error, results) => {
+    db.query('SELECT * FROM recipe WHERE id = $1', [id], (error, results) => {
         if (error) {
             throw error
         }
@@ -43,7 +57,7 @@ async function getById(req, res) {
 
 async function deleteById(req, res) {
     const id = req.params.id
-    db.query('DELETE FROM receita WHERE id = $1', [id], (error, results) => {
+    db.query('DELETE FROM recipe WHERE id = $1', [id], (error, results) => {
         if (error) {
             throw error
         }
