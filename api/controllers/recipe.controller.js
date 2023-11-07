@@ -20,10 +20,37 @@ async function create(req, res) {
     })
 }
 
-/**
- * @param {{ query: { has: (arg0: string) => any; search: any; }; }} req
- * @param {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: any[]): void; new (): any; }; }; }} res
- */
+async function updateById(req, res) {
+    const id = req.params.id
+
+    const recipe = {
+        title: req.body.title,
+        img: req.file.filename,
+        description: req.body.description,
+        ingredients: req.body.ingredients,
+        instructions: req.body.instructions
+    }
+
+    const query = {
+        text: 'UPDATE "recipe" SET title = $1, img = $2, description = $3, ingredients = $4, instructions = $5 WHERE id = $6  RETURNING *',
+        values: Object.values({ ...recipe, ['id']: id })
+    };
+
+    db.query(query, (error, result) => {
+        if (error) {
+            console.error('Error executing query:', error);
+            return res.status(500).json({ error: 'Não foi possível atualizar a Tabela.' });
+        }
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Receita não encontrada.' });
+        }
+
+        const updatedEntity = result.rows[0];
+        res.json(updatedEntity);
+    })
+}
+
 async function getAll(req, res) {
 
     let query = 'SELECT * FROM recipe ';
@@ -46,22 +73,40 @@ async function getAll(req, res) {
 
 async function getById(req, res) {
     const id = req.params.id
-    db.query('SELECT * FROM recipe WHERE id = $1', [id], (error, results) => {
+    const query = {
+        text: 'SELECT * FROM recipe WHERE id = $1 LIMIT 1',
+        values: [id],
+    };
+
+    db.query(query, (error, result) => {
         if (error) {
-            throw error
+            console.error('Error executing query:', error);
+            return res.status(500).json({ error: 'Ocorreu um erro no banco de dados' });
         }
-        res.status(200).json(results.rows)
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Entidade não encontrada.' });
+        }
+
+        const entity = result.rows[0];
+        res.status(200).json(entity)
     })
 
 }
 
 async function deleteById(req, res) {
     const id = req.params.id
-    db.query('DELETE FROM recipe WHERE id = $1', [id], (error, results) => {
+    const query = {
+        text: 'DELETE FROM recipe WHERE id = $1',
+        values: [id],
+    }
+
+
+    db.query(query, (error, result) => {
         if (error) {
             throw error
         }
-        res.status(200).json(results.rows)
+        res.status(200).json(result.rows)
     })
 
 }
@@ -70,5 +115,6 @@ module.exports = {
     getAll,
     getById,
     deleteById,
-    create
+    create,
+    updateById
 }

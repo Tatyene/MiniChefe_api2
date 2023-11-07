@@ -16,8 +16,9 @@ const upload = multer({
 });
 
 router.post("/", [middleware.verifySignUp, upload.single('img')], recipeController.create);
+router.put("/:id", [upload.single('img')], recipeController.updateById);
 router.get("/", recipeController.getAll);
-router.get("/:id", middleware.verifySignUp, recipeController.getById);
-router.delete("/:id", middleware.verifySignUp, recipeController.deleteById);
+router.get("/:id", recipeController.getById);
+router.delete("/:id", recipeController.deleteById);
 
 module.exports = router;
