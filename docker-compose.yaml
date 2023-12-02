@@ -1,0 +1,14 @@
+services:
+    db:
+      image: postgres
+      container_name: minichefe-postgres
+      restart: always
+      volumes:
+        - ./data:/var/lib/postgresql/data
+      environment:
+        - PGDATA=/var/lib/postgresql/minichefe
+        - POSTGRES_USER=root
+        - POSTGRES_PASSWORD=root
+        - POSTGRES_DB=mini_chefe
+      ports:
+        - "5432:5432"
